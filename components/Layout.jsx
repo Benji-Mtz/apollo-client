@@ -1,12 +1,9 @@
 import React from 'react'
 import Head from 'next/head';
 import Sidebar from './Sidebar';
-import { useRouter } from 'next/router';
+// import { useRouter } from 'next/router';
 
 const Layout = ({children}) => {
-
-    // Hooks routing
-    const router = useRouter();
     
     return (
         <>
