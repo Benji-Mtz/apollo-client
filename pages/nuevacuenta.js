@@ -1,9 +1,32 @@
 import Layout from '../components/Layout';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { useMutation, gql } from '@apollo/client';
+import { useState } from 'react';
+import { useRouter } from 'next/router';
+
+
+const NUEVA_CUENTA = gql`
+mutation nuevoUsuario($input: UsuarioInput) {
+    nuevoUsuario(input: $input) {
+        id
+        nombre
+        apellido
+        email
+    }
+}
+`;
 
 
 const NuevaCuenta = () => {
+
+    // State para el mensaje
+    const [mensaje, setMensaje] = useState(null);
+
+    const [ nuevoUsuario ] = useMutation(NUEVA_CUENTA);
+
+   // Router para redirigir
+   const router = useRouter();
 
     // Validacion del formulario
     const formik = useFormik({
@@ -19,16 +42,56 @@ const NuevaCuenta = () => {
             email: Yup.string().email('El email no es válido').required('El email es obligatorio'),
             password: Yup.string().required('El password no puede ir vacío').min(6,'El password debe ser de almenos 6 caracteres')
         }),
-        onSubmit: valores => {
-            console.log('Enviando');
-            console.log(valores);
+        onSubmit: async valores => {
+            // console.log('Enviando');
+            // console.log(valores);
+
+            const { nombre, apellido, email, password } = valores;
+
+            try {
+                const { data } = await nuevoUsuario({
+                    variables: {
+                        input: {
+                            nombre,
+                            apellido,
+                            email,
+                            password
+                        }
+                    }
+                });
+                console.log(data);
+                // Usuario creado correctamente
+                setMensaje(`Se creo correctamente el usuario: ${data.nuevoUsuario.nombre}`);
+                setTimeout(() => {
+                    setMensaje(null);
+                    router.push('/login');
+                }, 3000);
+
+                // Redirigir usuario para iniciar sesión
+
+
+            } catch (error) {
+                setMensaje(error.message.replace('Error:', ''));
+                setTimeout(() => {
+                    setMensaje(null);
+                }, 3000);
+            }
         }
     });
+
+    const mostrarMensaje = () => {
+        return (
+            <div className="bg-white py-2 px-3 w-full my-3 max-w-sm text-center mx-auto">
+                <p>{  mensaje }</p>
+            </div>
+        )
+    }
 
 
     return (
         <>
             <Layout>
+                { mensaje && mostrarMensaje() }
                 <h1 className="text-center text-2xl text-white font-light" >Crear Nueva Cuenta</h1>
                 <div className="flex justify-center mt-5">
                     <div className="w-full max-w-sm">
