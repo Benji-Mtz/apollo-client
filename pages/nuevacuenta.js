@@ -31,10 +31,10 @@ const NuevaCuenta = () => {
     // Validacion del formulario
     const formik = useFormik({
         initialValues: {
-            nombre: '',
-            apellido: '',
-            email: '',
-            password: ''
+            nombre: 'Benji',
+            apellido: 'Martinez',
+            email: 'hola@hola.com',
+            password: '123456'
         },
         validationSchema: Yup.object({
             nombre: Yup.string().required('El Nombre es obligatorio'),
@@ -71,6 +71,7 @@ const NuevaCuenta = () => {
 
 
             } catch (error) {
+                console.log(error);
                 setMensaje(error.message.replace('Error:', ''));
                 setTimeout(() => {
                     setMensaje(null);

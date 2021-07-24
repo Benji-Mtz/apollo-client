@@ -1,9 +1,27 @@
 import Layout from '../components/Layout';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { gql, useMutation } from '@apollo/client';
+import { useState } from 'react';
+import { useRouter } from 'next/router';
 
+
+const AUTENTICAR_USUARIO = gql`
+    mutation autenticarUsuario($input: AutenticarInput){
+        autenticarUsuario(input: $input){
+            token
+        }
+    }
+`;
 
 const Login = () => {
+
+    const router = useRouter();
+
+    const [mensaje, guardarMensaje] = useState(null);
+
+    // Mutation for create new users on apollo
+    const [ autenticarUsuario ] = useMutation(AUTENTICAR_USUARIO);
 
     const formik = useFormik({
         initialValues: {
@@ -14,16 +32,58 @@ const Login = () => {
             email: Yup.string().email('El email no es válido').required('El email no puede ir vacio'),
             password: Yup.string().required('El password es obligatorio')
         }),
-        onSubmit: valores => {
-            console.log(valores);
+        onSubmit:async valores => {
+            // console.log(valores);
+            const {email, password} = valores;
+
+            try {
+
+                const { data } = await autenticarUsuario({
+                    variables: {
+                        input: {
+                            email, 
+                            password
+                        }
+                    }
+                })
+                console.log(data);
+                guardarMensaje("Autenticando...");
+                
+                // Guardar el token en localstorage
+                const { token } = data.autenticarUsuario;
+                localStorage.setItem('token', token);
+
+                // Redireccionar al cliente
+
+                setTimeout(() => {
+                    guardarMensaje(null);
+                    router.push('/');
+                }, 2000);
+            } catch (error) {
+                guardarMensaje(error.message.replace("Error:", ""));
+                // console.log(error);
+                setTimeout(() => {
+                    guardarMensaje(null);
+                }, 3000);
+            }
         }
     })
 
+    const mostrarMensaje = () => {
+        return (
+            <div className="bg-white py-2 px-3 w-full my-3 max-w-sm text-center mx-auto">
+                <p>{  mensaje }</p>
+            </div>
+        )
+    }
 
     return (
         <>
             <Layout>
                 <h1 className="text-center text-2xl text-white font-light" >Login</h1>
+
+                { mensaje && mostrarMensaje() }
+
                 <div className="flex justify-center mt-5">
                     <div className="w-full max-w-sm">
                         <form
