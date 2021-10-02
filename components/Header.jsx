@@ -20,11 +20,12 @@ const Header = () => {
     // query apollo
     const { data, loading, error } = useQuery(OBTENER_USUARIO);
 
-    console.log( data, loading, error );
-
+    
     // Proteger que no accedamos a data antes de tener resultados
     if ( loading ) return null;
-
+    
+    // console.log( data, loading, error );
+    
     // Si no hay informacion
     if (!data) {
         return router.push('/login');
